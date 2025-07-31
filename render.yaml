@@ -1,7 +1,9 @@
+# render.yaml
 services:
-  - type: worker
+  - type: web
     name: mi-that-groq
     env: python
-    plan: free
-    buildCommand: ""
-    startCommand: python bot.py
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "python mi_that_groq.py"
+    pythonVersion: 3.11.9
+    region: oregon
