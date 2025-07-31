@@ -1,8 +1,6 @@
 # ✅ File chính: bot.py (phiên bản chạy trực tiếp, không cần Flask/Telegram)
 
 import requests
-
-# Cấu hình
 import os
 from dotenv import load_dotenv
 load_dotenv()
@@ -10,7 +8,6 @@ load_dotenv()
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")  # Key thật của Lủ
 
 # Hàm gọi Groq
-
 def call_groq(prompt):
     headers = {
         "Authorization": f"Bearer {GROQ_API_KEY}",
@@ -30,25 +27,26 @@ def call_groq(prompt):
     except Exception as e:
         return f"Mì lỗi rồi Lủ ơi... Lỗi: {e}"
 
-# Tương tác không dùng input() để tránh lỗi I/O trong môi trường sandbox
+# Telegram Bot
+from telegram import Update
+from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, MessageHandler, filters
 
-def run_conversation(queries):
-    replies = []
-    for prompt in queries:
-        if prompt.lower() in ["exit", "quit"]:
-            replies.append("Tạm biệt Lủ!")
-            break
-        reply = call_groq(prompt)
-        replies.append(f"Mì: {reply}")
-    return replies
+TELEGRAM_TOKEN = "7230484227:AAFaThmILI50HNnFTPfqApBvxNj9WhxCEGQ"
+OWNER_ID = os.getenv("OWNER_ID", "")
 
-# Test mẫu nếu chạy trên môi trường không hỗ trợ input()
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text("Mì online rồi Lủ ơi! Gửi gì đi nè.")
+
+async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_message = update.message.text
+    reply = call_groq(user_message)
+    await update.message.reply_text(reply)
+
 if __name__ == '__main__':
-    test_inputs = [
-        "Mì ơi, hôm nay trời thế nào?",
-        "Kể chuyện ma đi Mì",
-        "quit"
-    ]
-    responses = run_conversation(test_inputs)
-    for res in responses:
-        print(res)
+    app = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
+
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(MessageHandler(filters.TEXT & (~filters.COMMAND), handle_message))
+
+    print("Mì Telegram online rồi!")
+    app.run_polling()
